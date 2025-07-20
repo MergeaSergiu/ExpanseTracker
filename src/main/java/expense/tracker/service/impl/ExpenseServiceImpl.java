@@ -5,6 +5,7 @@ import expense.tracker.configuration.UtilsMethod;
 import expense.tracker.dto.ExpenseDataResponse;
 import expense.tracker.dto.ExpenseDto;
 import expense.tracker.dto.ExpensesResponse;
+import expense.tracker.dto.TopExpenses;
 import expense.tracker.entity.Expense;
 import expense.tracker.entity.ExpenseCategory;
 import expense.tracker.entity.User;
@@ -13,6 +14,8 @@ import expense.tracker.repository.ExpenseRepository;
 import expense.tracker.service.ExpenseService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -75,8 +78,22 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .toList();
     }
 
+    @Override
+    public List<TopExpenses> getTop5expenses(String authHeader) {
+        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
+        Pageable fifthOnly = PageRequest.of(0, 5);
+        return expenseRepository.findTopExpenses(user, fifthOnly)
+                .stream()
+                .map(expense -> new TopExpenses(
+                        expense.getName(),
+                        expense.getExpenseCategory().getName(),
+                        expense.getAmount(),
+                        expense.getDate()
+                ))
+                .toList();
+    }
+
     private ExpenseDataResponse mapToExpenseDataResponse(Expense expense) {
         return new ExpenseDataResponse(expense.getName(), expense.getAmount(), expense.getDate());
-
     }
 }

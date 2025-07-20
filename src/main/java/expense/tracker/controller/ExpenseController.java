@@ -4,6 +4,7 @@ package expense.tracker.controller;
 import expense.tracker.dto.ExpenseCategoryResponse;
 import expense.tracker.dto.ExpenseDto;
 import expense.tracker.dto.ExpensesResponse;
+import expense.tracker.dto.TopExpenses;
 import expense.tracker.entity.Expense;
 import expense.tracker.service.ExpenseService;
 import jakarta.validation.Valid;
@@ -11,7 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -38,6 +38,12 @@ public class ExpenseController {
     public ResponseEntity<List<ExpensesResponse>> getAllExpenses(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         List<ExpensesResponse> expenseCategoryResponses = expenseService.getAllExpense(authHeader);
         return ResponseEntity.ok(expenseCategoryResponses);
+    }
+
+    @GetMapping("/five")
+    public ResponseEntity<List<TopExpenses>> getTop5expense(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader){
+
+        return ResponseEntity.ok(expenseService.getTop5expenses(authHeader));
     }
 }
 
