@@ -1,17 +1,19 @@
 version: '3.8'
-
 services:
-  postgres:
-    image: postgres:16
-    container_name: postgres_expense_tracker
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_expense_tracker
     ports:
-      - "5432:5432"
+      - "5673:5672"
+      - "15673:15672" # management UI
     environment:
-      POSTGRES_DB: expense_tracker
-      POSTGRES_USER: tracker
-      POSTGRES_PASSWORD: tracker
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      RABBITMQ_DEFAULT_USER: expense
+      RABBITMQ_DEFAULT_PASS: expense
 
-volumes:
-  pgdata:
+  maildev:
+    image: maildev/maildev
+    container_name: maildev_expense_tracker
+    ports:
+      - "1025:1025"   # SMTP
+      - "1080:1080"   # Web UI
+
