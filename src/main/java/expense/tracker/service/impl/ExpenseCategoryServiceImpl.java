@@ -40,7 +40,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
         User user = utilsMethod.extractUsernameFromAuthorizationHeader(authorization);
         return  expenseCategoryRepository.findByUserId(user.getId())
                 .stream()
-                .map(category -> new ExpenseCategoryResponse(category.getId().toString(), category.getName()))
+                .map(category -> new ExpenseCategoryResponse(category.getId(), category.getName()))
                 .collect(Collectors.toList());
     }
 }

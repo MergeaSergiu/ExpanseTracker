@@ -3,9 +3,10 @@ package expense.tracker.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record ExpenseCategoryDto (
-        @NotBlank
+
+        @NotBlank(message = "Please add a name for the category")
         String name,
 
-        @NotBlank
+        @NotBlank(message = "Please add a description for this category")
         String description
 ){}

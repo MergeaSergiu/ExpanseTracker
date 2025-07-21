@@ -1,5 +1,5 @@
 package expense.tracker.dto;
 
-public record ExpenseCategoryResponse(String id, String name) {
+public record ExpenseCategoryResponse(Long id, String name) {
 
 }
