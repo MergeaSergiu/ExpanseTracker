@@ -16,6 +16,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     Expense findByUserIdAndName(Long userId, String expenseName);
 
+    Expense findByUserIdAndId(Long userId, Long id);
+
     List<Expense> findByUser(User user);
 
     @Query("SELECT e FROM Expense e WHERE e.user = :user ORDER BY e.amount DESC")

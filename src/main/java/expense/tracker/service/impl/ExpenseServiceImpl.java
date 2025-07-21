@@ -12,13 +12,15 @@ import expense.tracker.entity.User;
 import expense.tracker.repository.ExpenseCategoryRepository;
 import expense.tracker.repository.ExpenseRepository;
 import expense.tracker.service.ExpenseService;
+import expense.tracker.service.S3Service;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,11 +31,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UtilsMethod utilsMethod;
     private final ExpenseCategoryRepository expenseCategoryRepository;
+    private final S3Service s3Service;
 
-    public ExpenseServiceImpl(ExpenseRepository expenseRepository, UtilsMethod utilsMethod, ExpenseCategoryRepository expenseCategoryRepository) {
+    public ExpenseServiceImpl(ExpenseRepository expenseRepository, UtilsMethod utilsMethod, ExpenseCategoryRepository expenseCategoryRepository, S3Service s3Service) {
         this.expenseRepository = expenseRepository;
         this.utilsMethod = utilsMethod;
         this.expenseCategoryRepository = expenseCategoryRepository;
+        this.s3Service = s3Service;
     }
 
     @Override
@@ -91,6 +95,16 @@ public class ExpenseServiceImpl implements ExpenseService {
                         expense.getDate()
                 ))
                 .toList();
+    }
+
+    @Override
+    public void storeExpenseDocument(MultipartFile file, String authHeader, Long expenseId) throws IOException {
+        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
+        String documentURL = s3Service.uploadFile(file);
+        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+        if(expense == null) throw new EntityNotFoundException("This category does not exist");
+        expense.setDocumentURL(documentURL);
+        expenseRepository.save(expense);
     }
 
     private ExpenseDataResponse mapToExpenseDataResponse(Expense expense) {
