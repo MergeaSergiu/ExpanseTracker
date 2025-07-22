@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RequestMapping("/user")
 @RestController
 public class AuthenticationController {
@@ -22,7 +24,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<RegistrationResponse> authenticate(@RequestBody @Valid UserDTO userDTO){
+    public ResponseEntity<RegistrationResponse> authenticate(@RequestBody @Valid UserDTO userDTO) throws IOException {
         RegistrationResponse registerResponse = authenticationService.registerUser(userDTO);
         return ResponseEntity.ok(registerResponse);
     }
