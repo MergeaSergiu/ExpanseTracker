@@ -3,10 +3,12 @@ package expense.tracker.service;
 import expense.tracker.dto.*;
 import jakarta.validation.Valid;
 
+import java.io.IOException;
+
 
 public interface AuthenticationService {
 
- RegistrationResponse registerUser(@Valid UserDTO userDTO);
+ RegistrationResponse registerUser(@Valid UserDTO userDTO) throws IOException;
 
  LoginResponse loginUser(@Valid LoginDTO loginDTO);
 
