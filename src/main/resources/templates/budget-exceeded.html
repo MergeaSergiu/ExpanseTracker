@@ -2,11 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Welcome Email</title>
+    <title>Budget Alert</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f2f4f8;
+            background-color: #f9fafa;
             margin: 0;
             padding: 0;
         }
@@ -21,7 +21,7 @@
         }
 
         .header {
-            background-color: #2e86de;
+            background-color: #e74c3c;
             padding: 20px;
             border-radius: 8px 8px 0 0;
             color: white;
@@ -46,14 +46,14 @@
         }
 
         .highlight {
-            color: #2e86de;
+            color: #e74c3c;
             font-weight: bold;
         }
 
-        a.button {
+        .button {
             display: inline-block;
             margin-top: 20px;
-            background-color: #2e86de;
+            background-color: #e74c3c;
             color: #ffffff !important;
             padding: 10px 20px;
             border-radius: 5px;
@@ -61,26 +61,38 @@
             font-weight: bold;
         }
 
-        a.button:hover {
-            background-color: #1e6ab3;
+        .button:hover {
+            background-color: #c0392b;
+        }
+
+        .category-box {
+            background-color: #fceae9;
+            border-left: 5px solid #e74c3c;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>Welcome to Expense Tracker!</h1>
+        <h1>🚨 Budget Limit Exceeded!</h1>
     </div>
     <div class="content">
-        <p>Hello, <span class="highlight" th:text="${email}"></span> 👋</p>
+        <p>Hello, <span class="highlight" th:text="${email}"></span>,</p>
 
-        <p>We're excited to have you on board! <strong>Expense Tracker</strong> is here to help you take control of your spending and reach your financial goals.</p>
+        <p>We wanted to notify you that you've <strong>exceeded your budget</strong> for one or more categories.</p>
 
-        <p>Your account is now <strong>activated</strong>, and you're ready to start tracking!</p>
+        <div class="category-box">
+            <p><strong>Category:</strong> <span th:text="${category}"></span></p>
+            <p><strong>Limit:</strong> <span th:text="${budgetLimit}"></span></p>
+            <p><strong>Spent:</strong> <span th:text="${currentAmount}"></span></p>
+        </div>
 
-        <p style="margin-top: 30px;">If you have any questions or feedback, feel free to reach out to our support team anytime.</p>
+        <p>Please consider reviewing your spending habits to stay within your budget and achieve your financial goals. You can log into your account to adjust your limits or track your expenses more closely.</p>
 
-        <p>Cheers,<br/>The Expense Tracker Team</p>
+        <p style="margin-top: 30px;">Stay on track,<br/>The Expense Tracker Team</p>
     </div>
     <div class="footer">
         &copy; 2025 Expense Tracker. All rights reserved.

@@ -2,14 +2,13 @@ package expense.tracker.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import expense.tracker.configuration.RabbitMQConfig;
+import expense.tracker.dto.BudgetAlertEmailMessage;
 import expense.tracker.dto.EmailRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -39,8 +38,42 @@ public class EmailConsumer {
         }
     }
 
-    @Async
-    public void consumeAuthEmail(EmailRequest emailRequest) throws MessagingException {
+    @RabbitListener(queues = RabbitMQConfig.BUDGET_QUEUE)
+    public void consumeBudgetAlert(BudgetAlertEmailMessage message) throws MessagingException {
+
+        try {
+            consumeAlertEmail(message);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        // You can trigger your EmailService to send the actual email here
+    }
+
+    private void consumeAlertEmail(BudgetAlertEmailMessage message) throws MessagingException {
+        Context context = new Context();
+        context.setVariable("username", message.username());
+        context.setVariable("category", message.category());
+        context.setVariable("budgetLimit", message.budgetLimit());
+        context.setVariable("currentAmount", message.currentAmount());
+
+        String htmlContent = templateEngine.process("budget-exceeded", context);
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+            helper.setTo(message.to());
+            helper.setFrom("expense@domain.com");
+            helper.setSubject("Budget Limit Exceeded");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void consumeAuthEmail(EmailRequest emailRequest) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
