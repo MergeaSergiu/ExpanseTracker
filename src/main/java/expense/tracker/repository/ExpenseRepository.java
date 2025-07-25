@@ -1,6 +1,7 @@
 package expense.tracker.repository;
 
 import expense.tracker.entity.Expense;
+import expense.tracker.entity.ExpenseCategory;
 import expense.tracker.entity.User;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,4 +23,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("SELECT e FROM Expense e WHERE e.user = :user ORDER BY e.amount DESC")
     List<Expense> findTopExpenses(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.expenseCategory = :category AND e.user = :user")
+    Double getTotalSpentForCategoryByUser(@Param("user") User user, @Param("category") ExpenseCategory expenseCategory);
 }
