@@ -2,6 +2,8 @@ package expense.tracker.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 
 @Entity
 public class BudgetAlert {
@@ -12,6 +14,8 @@ public class BudgetAlert {
     @ManyToOne
     private ExpenseCategory expenseCategory;
     private Double budgetLimit;
+
+    private LocalDate lastSent;
 
     @ManyToOne
     private User user;
@@ -46,5 +50,13 @@ public class BudgetAlert {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public LocalDate getLastSent() {
+        return lastSent;
+    }
+
+    public void setLastSent(LocalDate lastSent) {
+        this.lastSent = lastSent;
     }
 }

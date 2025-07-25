@@ -12,7 +12,6 @@ import expense.tracker.service.BudgetAlertService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,12 +38,22 @@ public class BudgetAlertServiceImpl implements BudgetAlertService {
 
         Optional<BudgetAlert> existing = budgetAlertRepository.findByUserIdAndExpenseCategoryId(user.getId(), category.getId());
 
-        BudgetAlert alert = existing.orElseGet(BudgetAlert::new);
-        alert.setUser(user);
-        alert.setExpenseCategory(category);
-        alert.setBudgetLimit(budgetDto.budgetLimit());
+        //Update BudgetAlert component of the method
+        if(existing.isPresent()) {
+            existing.get().setBudgetLimit(budgetDto.budgetLimit());
 
-        budgetAlertRepository.save(alert);
+            budgetAlertRepository.save(existing.get());
+        }else{
+            //Create a BudgetAlert component of the method
+            BudgetAlert budgetAlert = new BudgetAlert();
+            budgetAlert.setBudgetLimit(budgetDto.budgetLimit());
+            budgetAlert.setUser(user);
+            budgetAlert.setExpenseCategory(category);
+            budgetAlert.setLastSent(null);
+
+            budgetAlertRepository.save(budgetAlert);
+        }
+
     }
 
     public List<BudgetAlertResponse> getUserAlerts(String authorization) {

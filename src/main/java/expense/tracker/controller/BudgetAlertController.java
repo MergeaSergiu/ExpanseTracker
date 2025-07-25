@@ -2,7 +2,6 @@ package expense.tracker.controller;
 
 import expense.tracker.dto.BudgetAlertDto;
 import expense.tracker.dto.BudgetAlertResponse;
-import expense.tracker.entity.BudgetAlert;
 import expense.tracker.service.BudgetAlertService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
