@@ -17,4 +17,7 @@ public interface ExpenseService {
     List<TopExpenses> getTop5expenses(String authHeader);
 
     void storeExpenseDocument(MultipartFile file, String authHeader, Long expenseId) throws IOException;
+
+
+    List<ExpensesResponse> getExpensesByCategory(String authHeader, Long expenseCategoryId);
 }

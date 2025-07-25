@@ -16,21 +16,20 @@ public class ExpenseCategory {
     @Column(nullable = false)
     private String name;
 
-    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    public ExpenseCategory( String name,  String description, User user) {
+    public ExpenseCategory( String name, User user) {
         this.name = name;
-        this.description = description;
         this.user = user;
     }
 
     public ExpenseCategory() {
 
     }
+
 
     public Long getId() {
         return id;
@@ -48,13 +47,6 @@ public class ExpenseCategory {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public User getUser() {
         return user;

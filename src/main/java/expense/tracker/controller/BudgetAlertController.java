@@ -28,5 +28,8 @@ public class BudgetAlertController {
     @GetMapping
     public ResponseEntity<List<BudgetAlertResponse>> getUserAlerts(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return ResponseEntity.ok(budgetAlertService.getUserAlerts(authorization));
-    }
+    } // see if it can be moved in UserProfilePageController page
+
+    //To do:
+    //1) Delete Alert
 }

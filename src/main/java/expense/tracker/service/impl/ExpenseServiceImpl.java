@@ -71,13 +71,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         return grouped.entrySet().stream()
                 .map(entry -> {
                     String category = entry.getKey();
+
                     List<Expense> expenses = entry.getValue();
+                    Long categoryId = expenses.getFirst().getExpenseCategory().getId();
 
                     List<ExpenseDataResponse> expenseList = expenses.stream()
                             .map(this::mapToExpenseDataResponse)
                             .toList();
 
-                    return new ExpensesResponse(category, expenseList);
+                    return new ExpensesResponse(category,categoryId, expenseList);
                 })
                 .toList();
     }
@@ -105,6 +107,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         if(expense == null) throw new EntityNotFoundException("This category does not exist");
         expense.setDocumentURL(documentURL);
         expenseRepository.save(expense);
+    }
+
+    @Override
+    public List<ExpensesResponse> getExpensesByCategory(String authHeader, Long expenseCategoryId) {
+        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
+        List<Expense> expenses = expenseRepository.findByUserIdAndExpenseCategoryId(user.getId(), expenseCategoryId);
+        List<ExpenseDataResponse> expenseList = expenses.stream()
+                .map(this::mapToExpenseDataResponse)
+                .toList();
+        String categoryName = expenses.isEmpty() ? "Unknown Category" : expenses.getFirst().getExpenseCategory().getName();
+        Long categoryId = expenses.getFirst().getExpenseCategory().getId();
+
+        return List.of(new ExpensesResponse(categoryName, categoryId, expenseList));
     }
 
     private ExpenseDataResponse mapToExpenseDataResponse(Expense expense) {

@@ -31,7 +31,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
         if(expenseCategory != null) {
             throw new EntityExistsException("This category already exists in your list");
         }
-        expenseCategory = new ExpenseCategory(expenseCategoryDto.name(), expenseCategoryDto.description(), user);
+        expenseCategory = new ExpenseCategory(expenseCategoryDto.name(), user);
         expenseCategoryRepository.save(expenseCategory);
     }
 

@@ -53,6 +53,17 @@ public class ExpenseController {
         expenseService.storeExpenseDocument(file, authHeader, expenseId);
         return ResponseEntity.ok("Document registered to your expense " + file);
     }
+
+    @GetMapping("/byCategory")
+    public ResponseEntity<List<ExpensesResponse>> getExpensesByCategory(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestParam Long expenseCategoryId) {
+       List<ExpensesResponse> expensesResponses = expenseService.getExpensesByCategory(authHeader, expenseCategoryId);
+       //To do: Retrieve the total sum of expensed for the category
+       return  ResponseEntity.ok(expensesResponses);
+    }
+
+    // To do:
+    // 1) Delete Expense
+
 }
 
 
