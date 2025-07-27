@@ -28,4 +28,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Double getTotalExpensesByUser(@Param("user") User user);
 
     List<Expense> findByUserIdAndExpenseCategoryId(Long userId, Long expenseCategoryId);
+
+    List<Expense> findTop3ByUserIdOrderByDateDesc(Long userId);
+
+    void deleteAllByExpenseCategoryId(Long expenseCategoryId);
+
+    Expense findByUserIdAndDocumentURL(Long userId, String documentURL);
 }

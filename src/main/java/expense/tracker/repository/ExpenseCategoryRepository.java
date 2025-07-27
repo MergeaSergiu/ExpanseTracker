@@ -9,8 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface ExpenseCategoryRepository extends JpaRepository<ExpenseCategory, Long> {
+
     List<ExpenseCategory> findByUserId(Long userId);
+
     Optional<ExpenseCategory> findByNameAndUserId(String categoryName, Long userId);
 
     Optional<ExpenseCategory> findByIdAndUserId(Long expenseCategoryId, Long userId);
+
+    Integer countByUserId(Long userId);
 }

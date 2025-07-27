@@ -1,12 +1,11 @@
 package expense.tracker.controller;
 
 
-import expense.tracker.dto.ExpenseCategoryResponse;
 import expense.tracker.dto.ExpenseDto;
+import expense.tracker.dto.ExpenseUpdateDto;
 import expense.tracker.dto.ExpensesResponse;
 import expense.tracker.dto.TopExpenses;
 import expense.tracker.service.ExpenseService;
-import expense.tracker.service.S3Service;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,7 @@ public class ExpenseController {
 
     private final ExpenseService expenseService;
 
-    public ExpenseController(ExpenseService expenseService, S3Service s3Service) {
+    public ExpenseController(ExpenseService expenseService) {
         this.expenseService = expenseService;
     }
 
@@ -33,12 +32,6 @@ public class ExpenseController {
     ) {
         expenseService.createExpense(expenseDto, authHeader);
         return ResponseEntity.ok("Expense created");
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ExpensesResponse>> getAllExpenses(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-        List<ExpensesResponse> expenseCategoryResponses = expenseService.getAllExpense(authHeader);
-        return ResponseEntity.ok(expenseCategoryResponses);
     }
 
     @GetMapping("/five")
@@ -54,16 +47,31 @@ public class ExpenseController {
         return ResponseEntity.ok("Document registered to your expense " + file);
     }
 
+    @PostMapping("/download")
+    public ResponseEntity<String> getDownloadUrl(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+                                                 @RequestParam String fileKey) throws IOException {
+        String url = expenseService.downloadExpenseDocument(authHeader, fileKey).toString();
+        return ResponseEntity.ok(url);
+    }
+
     @GetMapping("/byCategory")
     public ResponseEntity<List<ExpensesResponse>> getExpensesByCategory(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestParam Long expenseCategoryId) {
        List<ExpensesResponse> expensesResponses = expenseService.getExpensesByCategory(authHeader, expenseCategoryId);
-       //To do: Retrieve the total sum of expensed for the category
        return  ResponseEntity.ok(expensesResponses);
     }
 
-    // To do:
-    // 1) Delete Expense
+    @DeleteMapping
+    public ResponseEntity<Void> deleteExpense(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestParam Long expenseId) {
+        expenseService.deleteExpense(authHeader, expenseId);
+        return ResponseEntity.noContent().build();
+    }
 
+    @PutMapping
+    public ResponseEntity<Void> updateExpense(@RequestParam Long expenseId,
+                                              @RequestBody ExpenseUpdateDto expenseUpdateDto){
+        expenseService.updateExpense(expenseId, expenseUpdateDto);
+        return ResponseEntity.noContent().build();
+    }
 }
 
 

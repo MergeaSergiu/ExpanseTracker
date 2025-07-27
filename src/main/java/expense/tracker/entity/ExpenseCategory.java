@@ -16,13 +16,15 @@ public class ExpenseCategory {
     @Column(nullable = false)
     private String name;
 
+    private Double budgetLimit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    public ExpenseCategory( String name, User user) {
+    public ExpenseCategory( String name, Double budgetLimit, User user) {
         this.name = name;
+        this.budgetLimit = budgetLimit;
         this.user = user;
     }
 
@@ -30,6 +32,13 @@ public class ExpenseCategory {
 
     }
 
+    public Double getBudgetLimit() {
+        return budgetLimit;
+    }
+
+    public void setBudgetLimit(Double budgetLimit) {
+        this.budgetLimit = budgetLimit;
+    }
 
     public Long getId() {
         return id;

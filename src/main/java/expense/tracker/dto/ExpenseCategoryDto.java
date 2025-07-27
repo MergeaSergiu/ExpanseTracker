@@ -5,5 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 public record ExpenseCategoryDto (
 
         @NotBlank(message = "Please add a name for the category")
-        String name
+        String name,
+
+        Double budgetLimit
 ){}

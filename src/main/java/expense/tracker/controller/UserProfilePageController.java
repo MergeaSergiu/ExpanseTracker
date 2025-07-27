@@ -1,5 +1,6 @@
 package expense.tracker.controller;
 
+import expense.tracker.dto.DashboardInfo;
 import expense.tracker.dto.UserProfilePage;
 import expense.tracker.service.UserProfileService;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +25,9 @@ public class UserProfilePageController {
         return ResponseEntity.ok(userProfileService.getUserProfilePage(authHeader));
     }
 
-    //To do
-    //Dashboard information functionality: Total expenses, total categories and a list of budgets limit set
+    @GetMapping("/dashboard")
+    public ResponseEntity<DashboardInfo> dashboardInformation(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        return ResponseEntity.ok(userProfileService.dashboardInformation(authHeader));
+    }
 
 }

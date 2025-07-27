@@ -3,6 +3,7 @@ package expense.tracker.controller;
 
 import expense.tracker.dto.ExpenseCategoryDto;
 import expense.tracker.dto.ExpenseCategoryResponse;
+import expense.tracker.dto.ResponseMessage;
 import expense.tracker.service.ExpenseCategoryService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +32,18 @@ public class ExpenseCategoryController {
     @GetMapping
     public List<ExpenseCategoryResponse> getExpenseCategories(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return expenseCategoryService.getExpenseCategories(authorization);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ResponseMessage> deleteCategory(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, Long categoryId) {
+        ResponseMessage responseMessage = expenseCategoryService.deleteExpenseCategory(authorization, categoryId);
+        return ResponseEntity.ok().body(responseMessage);
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updateCategory(@RequestParam Long categoryId,
+                                               @RequestBody ExpenseCategoryDto expenseCategoryDto) {
+        expenseCategoryService.updateExpenseCategory(categoryId, expenseCategoryDto);
+        return ResponseEntity.ok().build();
     }
 }
