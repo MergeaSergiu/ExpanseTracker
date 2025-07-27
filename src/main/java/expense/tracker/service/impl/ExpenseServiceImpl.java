@@ -2,10 +2,7 @@ package expense.tracker.service.impl;
 
 import expense.tracker.configuration.UtilsMethod;
 
-import expense.tracker.dto.ExpenseDataResponse;
-import expense.tracker.dto.ExpenseDto;
-import expense.tracker.dto.ExpensesResponse;
-import expense.tracker.dto.TopExpenses;
+import expense.tracker.dto.*;
 import expense.tracker.entity.Expense;
 import expense.tracker.entity.ExpenseCategory;
 import expense.tracker.entity.User;
@@ -18,12 +15,12 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
@@ -58,31 +55,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<ExpensesResponse> getAllExpense(String authHeader) {
-
-        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
-
-        List<Expense> allUserExpenses = expenseRepository.findByUser(user);
-
-        Map<String, List<Expense>> grouped = allUserExpenses.stream()
-                .collect(Collectors.groupingBy(e -> e.getExpenseCategory().getName()));
-
-
-        return grouped.entrySet().stream()
-                .map(entry -> {
-                    String category = entry.getKey();
-                    List<Expense> expenses = entry.getValue();
-
-                    List<ExpenseDataResponse> expenseList = expenses.stream()
-                            .map(this::mapToExpenseDataResponse)
-                            .toList();
-
-                    return new ExpensesResponse(category, expenseList);
-                })
-                .toList();
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public List<TopExpenses> getTop5expenses(String authHeader) {
         User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
         Pageable fifthOnly = PageRequest.of(0, 5);
@@ -104,6 +77,51 @@ public class ExpenseServiceImpl implements ExpenseService {
         Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
         if(expense == null) throw new EntityNotFoundException("This category does not exist");
         expense.setDocumentURL(documentURL);
+        expenseRepository.save(expense);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ExpensesResponse> getExpensesByCategory(String authHeader, Long expenseCategoryId) {
+        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
+        List<Expense> expenses = expenseRepository.findByUserIdAndExpenseCategoryId(user.getId(), expenseCategoryId);
+        List<ExpenseDataResponse> expenseList = expenses.stream()
+                .map(this::mapToExpenseDataResponse)
+                .toList();
+
+        double totalSumOfCategory = expenseList.stream()
+                .mapToDouble(ExpenseDataResponse::amount)
+                .sum();
+        String categoryName = expenses.isEmpty() ? "Unknown Category" : expenses.getFirst().getExpenseCategory().getName();
+        Long categoryId = expenses.getFirst().getExpenseCategory().getId();
+
+        return List.of(new ExpensesResponse(categoryName, categoryId, totalSumOfCategory, expenseList));
+    }
+
+    @Override
+    @Transactional
+    public void deleteExpense(String authHeader, Long expenseId) {
+        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
+        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+        if(expense == null) throw new EntityNotFoundException("This expense does not exist");
+        expenseRepository.delete(expense);
+    }
+
+    @Override
+    public URL downloadExpenseDocument(String authHeader, String fileKey) throws IOException {
+        User user = utilsMethod.extractUsernameFromAuthorizationHeader(authHeader);
+        Expense expense = expenseRepository.findByUserIdAndDocumentURL(user.getId(), fileKey);
+        if(expense == null) throw new EntityNotFoundException("This expense does not exist");
+        return s3Service.download(expense.getDocumentURL());
+    }
+
+    @Override
+    public void updateExpense(Long expenseId, ExpenseUpdateDto expenseUpdateDto) {
+        Expense expense = expenseRepository.findById(expenseId).orElse(null);
+        if(expense == null) throw new EntityNotFoundException("This expense does not exist");
+        expense.setName(expenseUpdateDto.name());
+        expense.setAmount(expenseUpdateDto.amount());
+        expense.setDate(expenseUpdateDto.localDate());
         expenseRepository.save(expense);
     }
 

@@ -7,6 +7,7 @@ import expense.tracker.entity.Expense;
 import expense.tracker.entity.ExpenseCategory;
 import expense.tracker.entity.User;
 import expense.tracker.repository.BudgetAlertRepository;
+import expense.tracker.repository.ExpenseCategoryRepository;
 import expense.tracker.repository.ExpenseRepository;
 import expense.tracker.repository.UserRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,15 +28,17 @@ public class BudgetAlertSchedulerService {
     private final ExpenseRepository expenseRepository;
     private final BudgetAlertRepository budgetAlertRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final ExpenseCategoryRepository expenseCategoryRepository;
 
     public BudgetAlertSchedulerService(UserRepository userRepository,
                                        ExpenseRepository expenseRepository,
                                        BudgetAlertRepository budgetAlertRepository,
-                                       RabbitTemplate rabbitTemplate) {
+                                       RabbitTemplate rabbitTemplate, ExpenseCategoryRepository expenseCategoryRepository) {
         this.userRepository = userRepository;
         this.expenseRepository = expenseRepository;
         this.budgetAlertRepository = budgetAlertRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.expenseCategoryRepository = expenseCategoryRepository;
     }
 
     // Run once every 24 hours
@@ -47,7 +51,6 @@ public class BudgetAlertSchedulerService {
         for (User user : users) {
             List<Expense> userExpenses = expenseRepository.findByUser(user);
 
-
             List<Expense> currentMonthExpenses = userExpenses.stream()
                     .filter(expense -> expense.getDate().getMonth() == now.getMonth()
                             && expense.getDate().getYear() == now.getYear())
@@ -59,21 +62,34 @@ public class BudgetAlertSchedulerService {
                             Collectors.summingDouble(Expense::getAmount)
                     ));
 
-            List<BudgetAlert> userAlerts = budgetAlertRepository.findByUser(user);
+            List<ExpenseCategory> budgetedCategories = expenseCategoryRepository
+                    .findByUserId(user.getId())
+                    .stream()
+                    .filter(cat -> cat.getBudgetLimit() != null && cat.getBudgetLimit() > 0)
+                    .toList();
 
-            for (BudgetAlert alert : userAlerts) {
-                double total = categoryTotals.getOrDefault(alert.getExpenseCategory(), 0.0);
+            for (ExpenseCategory category : budgetedCategories) {
+                double total = categoryTotals.getOrDefault(category, 0.0);
 
-                boolean alertRecentlySent = alert.getLastSent() != null &&
-                        ChronoUnit.DAYS.between(alert.getLastSent(), now) < 15;
-                if (total > alert.getBudgetLimit() && !alertRecentlySent) {
+                Optional<BudgetAlert> optionalAlert = budgetAlertRepository.findByUserIdAndExpenseCategoryId(user.getId(), category.getId());
+
+                BudgetAlert alert = optionalAlert.orElseGet(() -> {
+                    BudgetAlert newAlert = new BudgetAlert();
+                    newAlert.setUser(user);
+                    newAlert.setExpenseCategory(category);
+                    return newAlert;
+                });
+
+                boolean shouldSendAlert = total > category.getBudgetLimit() &&
+                        (alert.getLastSent() == null || ChronoUnit.DAYS.between(alert.getLastSent(), now) >= 15);
+                if (shouldSendAlert) {
 
                     BudgetAlertEmailMessage message = new BudgetAlertEmailMessage(
-                            alert.getUser().getUsername(),
-                            alert.getExpenseCategory().getName(),
-                            alert.getBudgetLimit(),
+                            user.getUsername(),
+                            category.getName(),
+                            category.getBudgetLimit(),
                             total,
-                            alert.getUser().getUsername()
+                            user.getUsername()
                     );
                     rabbitTemplate.convertAndSend(RabbitMQConfig.BUDGET_QUEUE, message);
 

@@ -24,6 +24,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.user = :user ORDER BY e.amount DESC")
     List<Expense> findTopExpenses(@Param("user") User user, Pageable pageable);
 
-    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.expenseCategory = :category AND e.user = :user")
-    Double getTotalSpentForCategoryByUser(@Param("user") User user, @Param("category") ExpenseCategory expenseCategory);
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.user = :user")
+    Double getTotalExpensesByUser(@Param("user") User user);
+
+    List<Expense> findByUserIdAndExpenseCategoryId(Long userId, Long expenseCategoryId);
+
+    List<Expense> findTop3ByUserIdOrderByDateDesc(Long userId);
+
+    void deleteAllByExpenseCategoryId(Long expenseCategoryId);
+
+    Expense findByUserIdAndDocumentURL(Long userId, String documentURL);
 }

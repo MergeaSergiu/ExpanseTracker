@@ -16,20 +16,28 @@ public class ExpenseCategory {
     @Column(nullable = false)
     private String name;
 
-    private String description;
+    private Double budgetLimit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    public ExpenseCategory( String name,  String description, User user) {
+    public ExpenseCategory( String name, Double budgetLimit, User user) {
         this.name = name;
-        this.description = description;
+        this.budgetLimit = budgetLimit;
         this.user = user;
     }
 
     public ExpenseCategory() {
 
+    }
+
+    public Double getBudgetLimit() {
+        return budgetLimit;
+    }
+
+    public void setBudgetLimit(Double budgetLimit) {
+        this.budgetLimit = budgetLimit;
     }
 
     public Long getId() {
@@ -48,13 +56,6 @@ public class ExpenseCategory {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public User getUser() {
         return user;

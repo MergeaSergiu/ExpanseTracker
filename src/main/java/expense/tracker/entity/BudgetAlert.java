@@ -13,7 +13,6 @@ public class BudgetAlert {
 
     @ManyToOne
     private ExpenseCategory expenseCategory;
-    private Double budgetLimit;
 
     private LocalDate lastSent;
 
@@ -34,14 +33,6 @@ public class BudgetAlert {
 
     public void setExpenseCategory(ExpenseCategory expenseCategory) {
         this.expenseCategory = expenseCategory;
-    }
-
-    public Double getBudgetLimit() {
-        return budgetLimit;
-    }
-
-    public void setBudgetLimit(Double budgetLimit) {
-        this.budgetLimit = budgetLimit;
     }
 
     public User getUser() {
