@@ -12,12 +12,15 @@ import expense.tracker.service.AuthenticationService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -28,14 +31,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RabbitTemplate rabbitTemplate;
+    private final StringRedisTemplate redisTemplate;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, PasswordEncoder passwordEncoder, RabbitTemplate rabbitTemplate) {
+    public AuthenticationServiceImpl(UserRepository userRepository, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, PasswordEncoder passwordEncoder, RabbitTemplate rabbitTemplate, StringRedisTemplate redisTemplate) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.rabbitTemplate = rabbitTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -101,5 +106,38 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 access_token,
                 refreshToken.getRefresh_JWT(),
                 role);
+    }
+
+    @Override
+    public void requestPasswordReset(String email) {
+        String code = String.format("%06d", new Random().nextInt(999999));
+        String key = "pwd-reset:" + email;
+
+        redisTemplate.opsForValue().set(key, code, 10, TimeUnit.MINUTES);
+        ResetPassEmailMessage resetPassEmailMessage = new ResetPassEmailMessage(
+                email,
+                code
+        );
+
+        rabbitTemplate.convertAndSend(RabbitMQConfig.RESET_PASS_QUEUE, resetPassEmailMessage);
+    }
+
+    @Override
+    public boolean resetPassword(String email, String code, String newPassword) {
+        String key = "pwd-reset:" + email;
+        String storedCode = redisTemplate.opsForValue().get(key);
+
+        if (storedCode == null || !storedCode.equals(code)) {
+            return false;
+        }
+
+        User user = userRepository.findByUsername(email).orElse(null);
+        if (user == null) return false;
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        redisTemplate.delete(key);
+        return true;
     }
 }

@@ -4,12 +4,10 @@ package expense.tracker.controller;
 import expense.tracker.dto.*;
 import expense.tracker.service.AuthenticationService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -39,6 +37,26 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> refresh(@RequestBody JwtRefreshToken refreshToken){
         LoginResponse refreshData = authenticationService.generateToken(refreshToken);
         return ResponseEntity.status(HttpStatus.OK).body(refreshData);
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<String> requestPasswordReset(@RequestParam String email){
+        authenticationService.requestPasswordReset(email);
+        return ResponseEntity.ok("Password reset requested");
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity<String> resetPassword(@RequestParam String email,
+                                                @RequestParam String code,
+                                                @RequestParam String newPassword
+                                                ){
+        boolean success = authenticationService.resetPassword(email, code, newPassword);
+        if(success){
+            return ResponseEntity.ok("Password reset requested");
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Invalid email or code");
+        }
     }
 
 }
