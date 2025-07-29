@@ -22,6 +22,10 @@ public class RabbitMQConfig {
     public static final String BUDGET_EXCHANGE = "budgetExchange";
     public static final String BUDGET_ROUTING_KEY = "budget.email";
 
+    public static final String RESET_PASS_QUEUE = "resetPassQueue";
+    public static final String RESET_PASS_EXCHANGE = "resetPassExchange";
+    public static final String RESET_PASS_KEY = "restPassExchange";
+
     @Bean
     public Jackson2JsonMessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -51,6 +55,24 @@ public class RabbitMQConfig {
                 .bind(authenticationQueue)
                 .to(authenticationExchange)
                 .with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue restPassQueue() {
+        return new Queue(RESET_PASS_QUEUE);
+    }
+
+    @Bean
+    public DirectExchange resetPassExchange() {
+        return new DirectExchange(RESET_PASS_EXCHANGE);
+    }
+
+    @Bean
+    public Binding resetPassBinding(Queue restPassQueue, DirectExchange resetPassExchange) {
+        return BindingBuilder
+                .bind(restPassQueue)
+                .to(resetPassExchange)
+                .with(RESET_PASS_KEY);
     }
 
     @Bean

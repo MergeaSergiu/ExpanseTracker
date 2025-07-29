@@ -14,4 +14,7 @@ public interface AuthenticationService {
 
  LoginResponse generateToken(JwtRefreshToken refreshToken);
 
+ void requestPasswordReset(String email);
+
+ boolean resetPassword(String email, String code, String newPassword);
 }

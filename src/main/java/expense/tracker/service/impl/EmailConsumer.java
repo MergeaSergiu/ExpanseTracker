@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import expense.tracker.configuration.RabbitMQConfig;
 import expense.tracker.dto.BudgetAlertEmailMessage;
 import expense.tracker.dto.EmailRequest;
+import expense.tracker.dto.ResetPassEmailMessage;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,8 +30,7 @@ public class EmailConsumer {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             EmailRequest request = objectMapper.readValue(message, EmailRequest.class);
-
-            // Now send the email using JavaMailSender
+            
             consumeAuthEmail(request);
 
         } catch (Exception e) {
@@ -46,7 +46,35 @@ public class EmailConsumer {
         }catch (Exception e){
             e.printStackTrace();
         }
-        // You can trigger your EmailService to send the actual email here
+    }
+    
+    @RabbitListener(queues = RabbitMQConfig.RESET_PASS_QUEUE)
+    public void consumeResetPass(ResetPassEmailMessage message) throws MessagingException {
+        try{
+            consumeResetPassEmail(message);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        
+    }
+
+    private void consumeResetPassEmail(ResetPassEmailMessage message) {
+        Context context = new Context();
+        context.setVariable("email", message.username());
+        context.setVariable("resetCode", message.code()); // the 6-digit string
+        String htmlContent = templateEngine.process("reset-password", context);
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+            helper.setTo(message.username());
+            helper.setFrom("expense@domain.com");
+            helper.setSubject("Reset Password Request");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 
     private void consumeAlertEmail(BudgetAlertEmailMessage message) throws MessagingException {
