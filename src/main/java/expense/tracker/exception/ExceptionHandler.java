@@ -4,6 +4,7 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -56,6 +57,16 @@ public class ExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(BadCredentialsException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Username or password invalid",
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
 
