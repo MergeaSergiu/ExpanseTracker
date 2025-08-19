@@ -13,6 +13,7 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -79,7 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public LoginResponse loginUser(LoginDTO loginDTO) {
         User user = userRepository.findByUsername(loginDTO.email()).orElse(null);
-        if (user == null) throw new EntityExistsException("User does not exist");
+        if (user == null) throw new EntityExistsException("No account with the email provided");
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDTO.email(),
